@@ -1,1 +1,47 @@
+SELECT AVG(home_score + away_score) as avg_scores
+FROM results 
+WHERE date Between '1900-01-01' And '1999-12-31';
 
+
+SELECT 	winner, COUNT(*) as num_of_wins 
+From shootouts
+GROUP BY winner
+ORDER BY winner ASC;
+
+
+SELECT * 
+FROM goalscorers
+JOIN results ON goalscorers.date = results.date
+JOIN shootouts ON goalscorers.date = shootouts.date;
+
+
+SELECT winner
+from shootouts
+join results
+on shootouts.date = results.date 
+WHERE results.home_score = 1
+and results.away_score = 1;
+
+
+WITH scorer_totals AS (
+    SELECT 
+        results.tournament,
+        goalscorers.scorer,
+        COUNT(*) AS total_goals,
+        ROW_NUMBER() OVER (
+            PARTITION BY results.tournament
+            ORDER BY COUNT(*) DESC
+        ) AS ranks
+    FROM goalscorers
+    JOIN results
+        ON goalscorers.date = results.date
+    GROUP BY 
+        results.tournament,
+        goalscorers.scorer
+)
+SELECT 
+    tournament,
+    scorer,
+    total_goals
+FROM scorer_totals
+WHERE ranks = 1;
